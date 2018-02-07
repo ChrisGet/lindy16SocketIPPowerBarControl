@@ -3,6 +3,7 @@
 # A simple perl script to control the Lindy 16 socket power bar
 
 Required software for use:
+
 	wget		Linux command line web navigation tool. Install with your packagage manager.
 				"apt-get install wget" for Debian/Ubuntu.
 
@@ -10,6 +11,7 @@ Required software for use:
 				"apt-get install iputils-ping" for Debian/Ubuntu.
 
 Input Arguments:
+
 	--ip		Defines the IP address or hostname of the Lindy device to be controlled (Required).
 
 	--option	Defines the action you want to perform. Valid option is currently only "switch".
