@@ -44,60 +44,16 @@ if ($ping) {
 	warn "WARNING: Failed to ping the device. Is the IP \"$ip\" correct?\n";
 }
 
-#my @sockets = split(',',$socket);
-#my %sockets = processSocket(\$socket);
 my $socketstring = processSocket(\$socket);
 
 $options{$option}->();
 
-#sub getStatus {
-#	die "Not yet setup\n";
-#	die "ERROR: No socket given for status option. Please use --socket [<socket_number>]" if (!$socket);
-#	my $raw = `curl -s --connect-timeout 5 -d "$pwstring" http://$ip/login.html > /dev/null && curl -sS --connect-timeout 5 http://$ip/` || '';
-#	my @states;
-#	if ($raw) {
-#		if ($raw =~ m/var sockstates = \[(.+)\]/) {
-#			my $sockstates = $1;
-#			@states = split(',',$sockstates);
-#		} else {
-#			print "ERROR: No socket state info was found\n";
-#		}
-#	} else {
-#		print "ERROR: No socket state info was found\n";
-#	} 
-
-#	unshift(@states,'buffer');
-
-#	foreach my $socket (@sockets) {
-#		$socket =~ s/\s+//g;
-#		$socket =~ s/^0// if ($socket =~ /\d{2,}/);
-#		my $curstate = $states[$socket];
-#		if (defined $curstate) {
-#			my $onoff;
-#			$onoff = 'ON' if ($curstate == 1);
-#			$onoff = 'OFF' if ($curstate == 0);
-#			print "Socket $socket State = $onoff\n";			
-#		} else {
-#			print "Socket $socket State = ERROR\n";
-#		}
-#	}
-#}
-
 sub switch {
 	die "ERROR: No socket given for switch option. Please use --socket [<socket_number>]" if (!$socket);
 	die "ERROR: No state given for switch option against socket \"$socket\". Please use --state [on|off]" if (!$state);
-	die "ERROR: Invalid state \"$state\". Please use \"on\" or \"off\"\n" if ($state !~ /on|off/i);
-	#my $num;
-	#$num = '1' if ($state =~ /on/i);
-	#$num = '0' if ($state =~ /off/i); 
+	die "ERROR: Invalid state \"$state\". Please use \"on\" or \"off\"\n" if ($state !~ /on|off/i); 
 	my $script = $state . 's.cgi';		# Script will then either be "ons.cgi" or "offs.cgi"
-
-	#foreach my $socket (@sockets) {
-	#	$socket =~ s/\s+//g;
-	#	$socket =~ s/^0// if ($socket =~ /\d{2,}/);
-		#system("curl -s --connect-timeout 5 -d \"$pwstring\" http://$ip/login.html > /dev/null && curl -s --connect-timeout 5 -d \"ctl$socket=$num\" http://$ip > /dev/null");
 	system("wget -q http://$user:$pass\@$ip/$script\?led=$socketstring -O /dev/null");
-	#}
 }
 
 sub processSocket {
@@ -137,7 +93,7 @@ sub processSocket {
 
 sub helpText {
 print <<HELP;
-Energenie Control
+Lindy 16 Socket Power Bar Control
 Author: Chris Get
 
 Required software for use:
@@ -148,10 +104,9 @@ Required software for use:
 				"apt-get install iputils-ping" for Debian/Ubuntu.
 
 Input Arguments:
-	--ip		Defines the IP address or hostname of the Energenie device to be controlled (Required).
+	--ip		Defines the IP address or hostname of the Lindy device to be controlled (Required).
 
-	--option	Defines the action you want to perform. Valid options are "status" or "switch".
-				"status" -> Get the current status of socket(s) on the device.
+	--option	Defines the action you want to perform. Valid option is only "switch" for now.
 				"switch" -> Switch socket(s) on the device on or off (use with --state [on|off]).
 	
 	--socket	Defines the socket(s) you want to target for the action. You can use letters or numbers to identify the sockets.
