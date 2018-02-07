@@ -10,6 +10,8 @@ Required software for use:
 	ping		Linux command line tool for network device discovery. Install with your packagage manager.
 				"apt-get install iputils-ping" for Debian/Ubuntu.
 
+	Getopt::Long	Perl module to parse the input arguments. Install with the CPAN shell.
+
 Input Arguments:
 
 	--ip		Defines the IP address or hostname of the Lindy device to be controlled (Required).
