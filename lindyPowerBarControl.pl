@@ -14,20 +14,19 @@ GetOptions(	'ip=s' => \$ip,
 		'help' => \$help,
 );
 
-my %options = (	'status' => \&getStatus,
-		'switch' => \&switch,
+my %options = (	'switch' => \&switch,
 	);
 
 helpText() and exit if ($help);
 
 die "ERROR: No device IP provided. Please use \"--ip [<device_ip_address>]\"\n" if (!$ip);
-die "ERROR: No option given. Please use \"--option [status|switch]\" --socket [<socket_number>]\n" if (!$option);
+die "ERROR: No option given. Please use \"--option [switch]\" --socket [<socket_number>]\n" if (!$option);
 die "ERROR: No device username given. Please use \"--username [<device_username>]\"\n" if (!$user);
 die "ERROR: No device password given. Please use \"--password [<device_password>]\". If there is no password for the device, use a space inside double quotes e.g. \"--password \" \"\"\n" if (!$pass);
 $option = lc($option);
 
 if (!exists $options{$option}) {
-	die "ERROR: Invalid option \"$option\". Valid options are \"status\" or \"switch\"\n";
+	die "ERROR: Invalid option \"$option\". Valid option is only \"switch\" for now\n";
 }
 
 if ($option =~ /switch/i and !$socket) {
