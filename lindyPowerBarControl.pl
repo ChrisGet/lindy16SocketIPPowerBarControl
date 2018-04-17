@@ -15,22 +15,23 @@ GetOptions(	'ip=s' => \$ip,
 );
 
 my %options = (	'switch' => \&switch,
+		'status' => \&status,
 	);
 
 helpText() and exit if ($help);
 
 die "ERROR: No device IP provided. Please use \"--ip [<device_ip_address>]\"\n" if (!$ip);
-die "ERROR: No option given. Please use \"--option [switch]\" --socket [<socket_number>]\n" if (!$option);
+die "ERROR: No option given. Please use \"--option [switch|status]\" --socket [<socket_number>]\n" if (!$option);
 die "ERROR: No device username given. Please use \"--username [<device_username>]\"\n" if (!$user);
 die "ERROR: No device password given. Please use \"--password [<device_password>]\". If there is no password for the device, use a space inside double quotes e.g. \"--password \" \"\"\n" if (!$pass);
 $option = lc($option);
 
 if (!exists $options{$option}) {
-	die "ERROR: Invalid option \"$option\". Valid option is only \"switch\" for now\n";
+	die "ERROR: Invalid option \"$option\". Valid options are \"switch\" or \"status\"\n";
 }
 
-if ($option =~ /switch/i and !$socket) {
-	die "ERROR: No socket given for switch option. Please use \"--socket [<socket_number>]\" (Separate multiple sockets with a comma \',\')\n";
+if ($option =~ /switch|status/i and !$socket) {
+	die "ERROR: No socket given for option \"$option\". Please use \"--socket [<socket_number>]\" (Separate multiple sockets with a comma \',\')\n";
 }
 
 $ip =~ s/\s+//g;
@@ -43,8 +44,8 @@ if ($ping) {
 	warn "WARNING: Failed to ping the device. Is the IP \"$ip\" correct?\n";
 }
 
+$socket =~ s/\s+//g;    # Remove all whitespace from the socket text
 my $socketstring = processSocket(\$socket);
-
 $options{$option}->();
 
 sub switch {
@@ -53,6 +54,52 @@ sub switch {
 	die "ERROR: Invalid state \"$state\". Please use \"on\" or \"off\"\n" if ($state !~ /on|off/i); 
 	my $script = $state . 's.cgi';		# Script will then either be "ons.cgi" or "offs.cgi"
 	system("wget -q http://$user:$pass\@$ip/$script\?led=$socketstring -O /dev/null");
+}
+
+sub status {
+        die "ERROR: No socket given for status option. Please use --socket [<socket_number>]" if (!$socket);
+        my $xmlstatus = `wget -q http://$user:$pass\@$ip/status.xml -O -` // '';
+        if (!$xmlstatus) {
+                print "ERROR: Could not get status information from the power bar\n";
+                exit;
+        }
+
+        my %status;
+        if ($xmlstatus =~ m/\<pot0\>(\S+)\<\/pot0\>/) {
+                my $statusstring = $1;
+                #print "$statusstring\n";
+                my @states = split(',',$statusstring);
+                my $count = '1';
+                foreach my $t (@states) {
+                        next if (!defined $t or $t !~ /\S+/);
+                        next if ($t =~ /\./);
+                        last if ($count == '17');
+                        if ($t == '0') {
+                                $status{$count} = 'Off';
+                                $count++;
+                        } elsif ($t == '1') {
+                                $status{$count} = 'On';
+                                $count++;
+                        }
+                }
+
+                $socketstring =~ s/(?=.)(?<=.)/,/g;
+                my @selections = split(',',$socketstring);
+                my $scount = '1';
+                foreach my $sel (@selections) {
+                        if ($sel == 1) {
+                                my $state = $status{$scount} // '';
+                                if ($state) {
+                                        print "Socket $scount = $state\n";
+                                }
+                        }
+                        $scount++;
+                }
+
+        } else {
+                print "ERROR: Could not find socket state information in the xml file\n";
+                exit;
+        }
 }
 
 sub processSocket {
